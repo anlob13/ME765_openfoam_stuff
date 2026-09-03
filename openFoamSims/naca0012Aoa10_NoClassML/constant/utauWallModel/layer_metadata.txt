@@ -1,0 +1,7 @@
+3 64 tanh
+64 64 tanh
+64 64 tanh
+64 64 tanh
+64 64 tanh
+64 64 tanh
+64 1 linear

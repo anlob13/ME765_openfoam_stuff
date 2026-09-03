@@ -1,0 +1,38 @@
+
+/*--------------------------------*- C++ -*----------------------------------*\
+| OpenFOAM pressure sampling dictionary                                    |
+\*---------------------------------------------------------------------------*/
+
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      compareCpDict;
+}
+
+functions
+{
+    aerofoilPressure
+    {
+        type            surfaces;
+        libs            ("libsampling.so");
+
+        writeControl    writeTime;
+
+        surfaceFormat   raw;
+
+        fields
+        (
+            p
+        );
+
+        surfaces
+        (
+            aerofoil
+            {
+                type        patch;
+                patches     (aerofoil);
+            }
+        );
+    }
+}

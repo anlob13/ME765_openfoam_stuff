@@ -1,0 +1,112 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      functions;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//#includeFunc MachNo
+#includeFunc residuals
+
+//#includeFunc forcesCompressible(patches=(aerofoil), CofR = (0.25 0 0), pitchAxis = (0 1 0))
+#includeFunc forceCoeffsCompressible(patches=(aerofoil), CofR = (0.25 0 0), pitchAxis = (0 1 0), magUInf=43.824, rhoInf = 1.225, lRef = 1, Aref = 0.2, liftDir=(-0.1736 0 0.9848), dragDir = (0.9848 0 0.1736)) //aoa10
+
+/*
+faceCellDebug
+{
+    type            coded;
+    libs            ("libutilityFunctionObjects.so");
+
+    name            faceCellDebugFO;
+
+    codeWrite
+    #{
+        const fvMesh& mesh = this->mesh();
+
+        // Change this to your actual aerofoil patch name
+        const word patchName = "aerofoil";
+        const label patchi = mesh.boundaryMesh().findIndex(patchName);
+
+        if (patchi == -1)
+        {
+            FatalErrorInFunction
+                << "Patch " << patchName << " not found"
+                << exit(FatalError);
+        }
+
+        const fvPatch& p = mesh.boundary()[patchi];
+        const labelUList& faceCells = p.faceCells();
+
+        // Register (or fetch) a debug field so it shows up in ParaView
+        if (!mesh.foundObject<volScalarField>("faceCellDebug"))
+        {
+            volScalarField* debugFieldPtr = new volScalarField
+            (
+                IOobject
+                (
+                    "faceCellDebug",
+                    mesh.time().timeName(mesh.time().value()),
+                    mesh,
+                    IOobject::NO_READ,
+                    IOobject::AUTO_WRITE
+                ),
+                mesh,
+                dimensionedScalar(dimless, -1)
+            );
+            debugFieldPtr->store();
+        }
+
+        volScalarField& debugField =
+            mesh.lookupObjectRef<volScalarField>("faceCellDebug");
+
+        // Reset then fill with facei at each near-wall cell
+        debugField.primitiveFieldRef() = -1;
+
+        forAll(faceCells, facei)
+        {
+            debugField[faceCells[facei]] = facei;
+        }
+
+        // Also print a text table to the log for exact cross-checking
+        Info<< "=== faceCellDebug mapping for patch " << patchName
+            << " (proc " << Pstream::myProcNo() << ") ===" << endl;
+
+        forAll(faceCells, facei)
+        {
+            const label celli = faceCells[facei];
+            Info<< "facei " << facei
+                << " -> celli " << celli
+                << " @ " << mesh.C()[celli]
+                << endl;
+        }
+
+        debugField.write();
+    #};
+
+    writeControl    writeTime;
+}
+
+fieldAverage1
+{
+    type            fieldAverage;
+    libs            (fieldFunctionObjects);
+    fields
+    (
+        U
+        {
+            mean        on;
+            prime2Mean  on;
+            base        time;
+        }
+    );
+}
+*/
+// ************************************************************************* //
