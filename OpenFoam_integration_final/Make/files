@@ -1,0 +1,12 @@
+forwardPass/mlForwardPass_full.C
+regime/regime_wall_model.C
+
+classifier/classifier_ensemble.C
+classifier/classifier_wall_model.C
+classifierNutUWallFunctionFvPatchScalarField.C
+
+unified/unified_ensemble.C
+unified/unified_wall_model.C
+unifiedNutUWallFunctionFvPatchScalarField.C
+
+LIB = $(FOAM_USER_LIBBIN)/libUnifiedWallModel
