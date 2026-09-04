@@ -1,0 +1,6 @@
+Normalization 6
+Dense 6 64 tanh
+Dense 64 64 tanh
+Dense 64 64 tanh
+Dense 64 64 tanh
+Dense 64 11 linear

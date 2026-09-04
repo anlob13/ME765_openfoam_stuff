@@ -437,12 +437,16 @@ namespace Foam
                     ? nuw[facei] * (magU_stream / max(SMALL, magUp[facei])) * tw_n_sigma
                     : 0;
 
+            // std::cout << "utau flag" << nuw[facei] *tw_n_prediction * magU_stream / y[facei] << std::endl; //debug
+            // Info << "Reached utau" << endl;
+            const scalar uTau = sqrt(nuw[facei] * tw_n_prediction * magU_stream / max(SMALL, y[facei]));
+
             // Store ML outputs
             setOutputField(
                 "tw_n_mean",
                 patchi,
                 facei,
-                tw_n_prediction);
+                uTau*uTau);
 
             setOutputField(
                 "tw_n_sigma",
@@ -456,9 +460,6 @@ namespace Foam
                 values.weightsMean,
                 values.weightsSigma);
 
-            // std::cout << "utau flag" << nuw[facei] *tw_n_prediction * magU_stream / y[facei] << std::endl; //debug
-            // Info << "Reached utau" << endl;
-            const scalar uTau = sqrt(nuw[facei] * tw_n_prediction * magU_stream / max(SMALL, y[facei]));
 
             // const scalar uTau = ensembleModel_->predict(inputs)[0]*magUp[facei]*nuw[facei]/(y[facei]*rhop[facei]);
             const scalar yPlusCalc = uTau * y[facei] / max(SMALL, nuw[facei]);
@@ -472,13 +473,11 @@ namespace Foam
                 nutw[facei] = kappa_ * uTau * y[facei] * (1 - std::exp(-yPlusCalc / Aplus)) * (1 - std::exp(-yPlusCalc / Aplus)); // LES
             }
 
-            const scalar expected = nutwTest[facei];
-            const scalar absError = mag(nutw[facei] - expected);
+            //const scalar expected = nutwTest[facei];
+            //const scalar absError = mag(nutw[facei] - expected);
 
-            const scalar percentError =
-                (mag(expected) > SMALL)
-                    ? 100.0 * absError / mag(expected)
-                    : 0.0; // or -1, GREAT, NaN, etc. depending on how you want to flag it
+            //const scalar percentError =(mag(expected) > SMALL)? 100.0 * absError / mag(expected): 0.0; // or -1, GREAT, NaN, etc. depending on how you want to flag it
+
 
             // LOGS
             // wmlog

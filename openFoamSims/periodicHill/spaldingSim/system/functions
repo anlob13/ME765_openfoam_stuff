@@ -1,0 +1,28 @@
+writeCellCentres
+{
+    type            writeCellCentres;
+
+    libs
+    (
+        "libfieldFunctionObjects.so"
+    );
+
+    writeControl    writeTime;
+}
+
+wallShearStress
+{
+    type            wallShearStress;
+
+    libs            ("libfieldFunctionObjects.so");
+
+    solver          incompressibleFluid;
+
+    patches
+    (
+        hills
+    );
+
+    executeControl  writeTime;
+    writeControl    writeTime;
+}

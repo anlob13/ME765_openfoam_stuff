@@ -1,0 +1,38 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1812                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     foamRun;
+
+solver		incompressibleFluid;
+
+startFrom       latestTime;   // ideally mapped from your converged RANS run
+stopAt          endTime;
+endTime         0.5;            // set based on several flow-through times + averaging window
+
+deltaT          1e-5;         // initial guess — adjustTimeStep will correct it
+writeControl    adjustableRunTime;
+writeInterval   0.01;
+
+adjustTimeStep  yes;
+maxCo           0.5;
+maxDeltaT       1e-3;
+
+functions
+{
+    #include "functions"
+}
+// ************************************************************************* //
