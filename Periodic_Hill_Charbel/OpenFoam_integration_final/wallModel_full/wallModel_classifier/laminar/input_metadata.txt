@@ -1,0 +1,2 @@
+log1p_cols 0 1 5
+arcsinh_cols 2 3 4

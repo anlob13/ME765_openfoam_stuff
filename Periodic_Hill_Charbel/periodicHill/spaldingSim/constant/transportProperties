@@ -1,0 +1,30 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1812                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "constant";
+    object      transportProperties;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+transportModel  Newtonian;
+
+// Re_H = Ub*H/nu = 10595 (Hansen, Yang & Abkar 2026, JFE 148(1):011502; arXiv 2412.16668) -
+// with this case's own convention H=1, Ub=1 (see fvOptions' meanVelocityForce Ubar and
+// blockMeshDict's scale/vertex normalization by hill height), nu = 1/Re_H.
+// Was 2.643e-6 (implies Re_H~378,400 - off by ~36x from the paper's target, and far
+// beyond what this mesh's resolution could resolve even before the solver/averaging
+// fixes below). Kept identical to mlSim's own value - both cases must share the same
+// physical setup for this to be a fair comparison.
+nu              9.438414e-05;
+
+
+// ************************************************************************* //

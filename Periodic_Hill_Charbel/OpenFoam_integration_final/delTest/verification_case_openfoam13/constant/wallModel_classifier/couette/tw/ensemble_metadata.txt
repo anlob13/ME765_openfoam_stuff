@@ -1,0 +1,4 @@
+n_members 5
+y_mean 1.0663561975631075
+y_scale 0.28823019033630293
+apply_target_arcsinh 1

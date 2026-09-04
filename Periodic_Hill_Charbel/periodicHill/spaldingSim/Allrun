@@ -1,0 +1,22 @@
+#!/bin/sh
+cd ${0%/*} || exit 1    # run from this directory
+
+# Source tutorial run functions
+. $WM_PROJECT_DIR/bin/tools/RunFunctions
+
+runApplication blockMesh
+
+runApplication topoSet
+
+runApplication decomposePar
+
+# Was `simpleFoam` (steady RAS-only SIMPLE algorithm - never supported LES in any
+# OpenFOAM version). controlDict already declares `application foamRun; solver
+# incompressibleFluid;` (transient, PIMPLE-based - the only solver actually
+# compatible with this case's `momentumTransport` LES/WALE setting) - this line
+# just wasn't updated to match when the case was switched to LES. foamRun also
+# handles RAS correctly (dispatches on momentumTransport's simulationType), so
+# this same command is correct for both mlSim and spaldingSim, RAS or LES.
+runParallel foamRun
+
+

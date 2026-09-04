@@ -1,0 +1,46 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1812                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     foamRun;
+
+solver		incompressibleFluid;
+
+startFrom       latestTime;   // ideally mapped from your converged RANS run
+stopAt          endTime;
+// Hansen, Yang & Abkar 2026 (JFE 148(1):011502; arXiv 2412.16668) average the
+// periodic hill case over Tf=200 flow-through times. One flow-through time here
+// = Lx/Ub = 9/1 = 9 (this case's own H=1, Ub=1 convention - see blockMeshDict/
+// fvOptions), so 200 FTT = 1800. Was 0.5 (~0.06 FTT - nowhere near converged
+// statistics even before the solver/nu fixes above). ~22 FTT (200 time units) of
+// spin-up before endTime=2000, matching system/functions' fieldAverage timeStart
+// below, so exactly the paper's 200 FTT actually get averaged. NOTE: this is a
+// MUCH more expensive run than before - flag before launching, see README note.
+endTime         2000;
+
+deltaT          1e-5;         // initial guess — adjustTimeStep will correct it
+writeControl    adjustableRunTime;
+writeInterval   40;            // same endTime/writeInterval ratio as before (~50 snapshots)
+
+adjustTimeStep  yes;
+maxCo           0.5;
+maxDeltaT       1e-3;
+
+functions
+{
+    #include "functions"
+}
+// ************************************************************************* //

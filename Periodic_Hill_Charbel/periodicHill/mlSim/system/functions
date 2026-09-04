@@ -1,0 +1,79 @@
+writeCellCentres
+{
+    type            writeCellCentres;
+
+    libs
+    (
+        "libfieldFunctionObjects.so"
+    );
+
+    writeControl    writeTime;
+}
+
+wallShearStress
+{
+    type            wallShearStress;
+
+    libs            ("libfieldFunctionObjects.so");
+
+    solver          incompressibleFluid;
+
+    patches
+    (
+        hills
+    );
+
+    // Was executeControl writeTime - only recomputed a fresh value every
+    // writeInterval (40 time units), so fieldAverage below (see its own comment)
+    // would otherwise be time-weighting a handful of sparse, stale snapshots
+    // instead of a proper continuous running average over the Tf=200
+    // flow-through-time window. Compute every step (cheap relative to the flow
+    // solve itself); still only WRITE the instantaneous field at writeTime, to
+    // keep disk usage the same as before.
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+}
+
+// Hansen, Yang & Abkar 2026 (JFE 148(1):011502; arXiv 2412.16668): periodic hill
+// statistics averaged over Tf=200 flow-through times (Tf = Lx/Ub). timeStart=200
+// (~22 FTT of spin-up, matching controlDict's endTime=2000 = 200 + 200*9) excludes
+// the initial transient from the average, so exactly the paper's 200 FTT window
+// gets accumulated. Without this function object, comparing a single instantaneous
+// snapshot (what the case wrote before this fix) to Spalding's law is comparing a
+// chaotic turbulent instant to a converged MEAN quantity - not a fair or meaningful
+// comparison for LES.
+fieldAverage1
+{
+    type            fieldAverage;
+
+    libs            ("libfieldFunctionObjects.so");
+
+    timeStart       200;
+
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+
+    fields
+    (
+        U
+        {
+            mean        on;
+            prime2Mean  on;
+            base        time;
+        }
+        p
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+        wallShearStress
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+    );
+}
