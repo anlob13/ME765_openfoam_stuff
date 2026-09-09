@@ -1,0 +1,79 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+  =========                 |
+  \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+   \\    /   O peration     | Website:  https://openfoam.org
+    \\  /    A nd           | Version:  13
+     \\/     M anipulation  |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    format      ascii;
+    class       polyBoundaryMesh;
+    location    "constant/polyMesh";
+    object      boundary;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+6
+(
+    hills
+    {
+        type            wall;
+        inGroups        List<word> 1(wall);
+        nFaces          11712;
+        startFace       1795928;
+    }
+    inlet
+    {
+        type            cyclic;
+        inGroups        List<word> 1(cyclic);
+        nFaces          2501;
+        startFace       1807640;
+        matchTolerance  0.0001;
+        neighbourPatch  outlet;
+        transformType   translational;
+        separation      (-9.000000000000272 4.440892098500626e-16 -8.881784197001252e-16);
+    }
+    back
+    {
+        type            cyclic;
+        inGroups        List<word> 1(cyclic);
+        nFaces          9977;
+        startFace       1810141;
+        matchTolerance  0.0001;
+        neighbourPatch  front;
+        transformType   translational;
+        separation      (0 0 -4.4999999999999);
+    }
+    outlet
+    {
+        type            cyclic;
+        inGroups        List<word> 1(cyclic);
+        nFaces          2501;
+        startFace       1820118;
+        matchTolerance  0.0001;
+        neighbourPatch  inlet;
+        transformType   translational;
+        separation      (9.000000000000272 -4.440892098500626e-16 8.881784197001252e-16);
+    }
+    front
+    {
+        type            cyclic;
+        inGroups        List<word> 1(cyclic);
+        nFaces          9977;
+        startFace       1822619;
+        matchTolerance  0.0001;
+        neighbourPatch  back;
+        transformType   translational;
+        separation      (0 0 4.4999999999999);
+    }
+    top
+    {
+        type            wall;
+        inGroups        List<word> 1(wall);
+        nFaces          10980;
+        startFace       1832596;
+    }
+)
+
+// ************************************************************************* //

@@ -1,0 +1,83 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     |                                                 |
+|   \\  /    A nd           |                                                 |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+FoamFile
+{
+    format      ascii;
+    class       dictionary;
+    object      createPatchDict;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+pointSync false;
+
+patches
+(
+    {
+        name            inlet;
+
+        patchInfo
+        {
+            type            cyclic;
+            neighbourPatch  outlet;
+            transform       translational;
+            separationVector (-9.000000000000272 4.440892098500626e-16 -8.881784197001252e-16);
+        }
+
+        constructFrom patches;
+        patches (inlet);
+    }
+
+    {
+        name            outlet;
+
+        patchInfo
+        {
+            type            cyclic;
+            neighbourPatch  inlet;
+            transform       translational;
+            separationVector (9.000000000000272 -4.440892098500626e-16 8.881784197001252e-16);
+        }
+
+        constructFrom patches;
+        patches (outlet);
+    }
+
+    {
+        name            back;
+
+        patchInfo
+        {
+            type            cyclic;
+            neighbourPatch  front;
+            transform       translational;
+            separationVector (0 0 -4.4999999999999);
+        }
+
+        constructFrom patches;
+        patches (back);
+    }
+
+    {
+        name            front;
+
+        patchInfo
+        {
+            type            cyclic;
+            neighbourPatch  back;
+            transform       translational;
+            separationVector (0 0 4.4999999999999);
+        }
+
+        constructFrom patches;
+        patches (front);
+    }
+);
+
+// ************************************************************************* //

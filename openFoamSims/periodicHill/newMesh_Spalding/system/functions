@@ -1,0 +1,68 @@
+writeCellCentres
+{
+    type            writeCellCentres;
+
+    libs
+    (
+        "libfieldFunctionObjects.so"
+    );
+
+    writeControl    writeTime;
+}
+
+wallShearStress
+{
+    type            wallShearStress;
+    libs            ("libfieldFunctionObjects.so");
+    solver          incompressibleFluid;
+    patches
+    (
+        hills
+    );
+
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+}
+
+yPlus
+{
+    type            yPlus;
+    libs            ("libfieldFunctionObjects.so");
+
+    executeControl  writeTime;
+    writeControl    writeTime;
+}
+
+fieldAverage1
+{
+    type            fieldAverage;
+    libs            ("libfieldFunctionObjects.so");
+    timeStart       0;
+    executeControl  timeStep;
+    executeInterval 1;
+    writeControl    writeTime;
+    restartOnOutput true;
+
+    fields
+    (
+        U
+        {
+            mean        on;
+            prime2Mean  on;
+            base        time;
+        }
+        p
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+        wallShearStress
+        {
+            mean        on;
+            prime2Mean  off;
+            base        time;
+        }
+    );
+}

@@ -1,0 +1,203 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1812                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      blockMeshDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Geometry is expressed in units of the hill height h (h = 28 mm).
+// Bounding box: 9h (x) x 3.035h (y) x 4.5h (z)  -- standard ERCOFTAC
+// periodic hills normalisation. scale converts h-units to metres.
+scale   1;
+
+vertices
+(
+    (0 1     0)     // 0
+    (9 1     0)     // 1
+    (9 3.035 0)     // 2
+    (0 3.035 0)     // 3
+
+    (0 1     4.5)   // 4
+    (9 1     4.5)   // 5
+    (9 3.035 4.5)   // 6
+    (0 3.035 4.5)   // 7
+);
+
+blocks
+(
+    hex (0 1 2 3 4 5 6 7) (120 40 60) simpleGrading (1 ((0.5 0.5 10)(0.5 0.5 0.1)) 1)
+);
+
+
+
+edges #codeStream
+{
+    codeInclude
+    #{
+        #include "pointField.H"
+        #include "mathematicalConstants.H"
+    #};
+
+    code
+    #{
+        // Hill profile polynomials are fitted in mm (original ERCOFTAC
+        // coefficients); h is the normalisation length (crest height).
+        const scalar h = 28.0;
+        const scalar xMin = 0;
+        const scalar xMax = 252;
+        const label nPoints = 1000;
+        const scalar dx = (xMax - xMin)/scalar(nPoints - 1);
+
+        os  << "(" << nl << "spline 0 1" << nl;
+        pointField profile(nPoints);
+
+        for (label i = 0; i < nPoints; ++i)
+        {
+            const scalar x = xMin + i*dx;
+            scalar xs = x;
+            if (xs > 198) xs = 252 - xs;
+
+            scalar y = 0;
+
+            if (xs >= 0 && xs < 9)
+            {
+                y = min
+                    (
+                        28.0,
+                        2.800000000000E+01
+                      + 0.000000000000E+00*xs
+                      + 6.775070969851E-03*xs*xs
+                      - 2.124527775800E-03*xs*xs*xs
+                    );
+            }
+            else if (xs >= 9 && xs < 14)
+            {
+                y = 2.507355893131E+01
+                  + 9.754803562315E-01*xs
+                  - 1.016116352781E-01*xs*xs
+                  + 1.889794677828E-03*xs*xs*xs;
+            }
+            else if (xs >= 14 && xs < 20)
+            {
+                y = 2.579601052357E+01
+                  + 8.206693007457E-01*xs
+                  - 9.055370274339E-02*xs*xs
+                  + 1.626510569859E-03*xs*xs*xs;
+            }
+            else if (xs >= 20 && xs < 30)
+            {
+                y = 4.046435022819E+01
+                  - 1.379581654948E+00*xs
+                  + 1.945884504128E-02*xs*xs
+                  - 2.070318932190E-04*xs*xs*xs;
+            }
+            else if (xs >= 30 && xs < 40)
+            {
+                y = 1.792461334664E+01
+                  + 8.743920332081E-01*xs
+                  - 5.567361123058E-02*xs*xs
+                  + 6.277731764683E-04*xs*xs*xs;
+            }
+            else if (xs >= 40 && xs < 54)
+            {
+                y = max
+                    (
+                        0.0,
+                        5.639011190988E+01
+                      - 2.010520359035E+00*xs
+                      + 1.644919857549E-02*xs*xs
+                      + 2.674976141766E-05*xs*xs*xs
+                    );
+            }
+            else
+            {
+                y = 0;
+            }
+
+            // Normalise to h-units so the block spans exactly 0-9 in x
+            // and the hill crest sits at y = 1.
+            profile[i].x() = x/h;
+            profile[i].y() = y/h;
+            profile[i].z() = 0;
+        }
+        os << profile << nl;
+
+        os << "spline 4 5" << nl;
+        profile.replace(2, 4.5);
+        os << profile << nl;
+
+        os  << ");" << nl;
+    #};
+};
+
+boundary
+(
+    inlet
+    {
+        type            cyclic;
+        neighbourPatch  outlet;
+        faces
+        (
+            (0 4 7 3)
+        );
+    }
+    outlet
+    {
+        type            cyclic;
+        neighbourPatch  inlet;
+        faces
+        (
+            (1 2 6 5)
+        );
+    }
+    top
+    {
+        type            wall;
+        faces
+        (
+            (3 7 6 2)
+        );
+    }
+    hills
+    {
+        type            wall;
+        faces
+        (
+            (1 5 4 0)
+        );
+    }
+    front
+    {
+        type            cyclic;
+        neighbourPatch  back;
+        faces
+        (
+            (0 3 2 1)
+        );
+    }
+
+    back
+    {
+        type            cyclic;
+        neighbourPatch  front;
+        faces
+        (
+            (4 5 6 7)
+        );
+    }
+);
+
+mergePatchPairs
+(
+);
+
+// ************************************************************************* //

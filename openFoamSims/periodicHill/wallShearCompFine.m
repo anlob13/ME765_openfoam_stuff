@@ -2,14 +2,20 @@
 % PERIODIC HILL: SPALDING vs ML
 % WALL SHEAR STRESS / SKIN FRICTION
 %
-% Reads wallShearStress from the "hills" patch and compares
-% the signed streamwise/tangential skin-friction coefficient.
+% Reads wallShearStressMean (the fieldAverage'd field, NOT the instantaneous
+% wallShearStress - see system/functions' own comment on why: for LES, a single
+% instantaneous snapshot is a chaotic turbulent instant, not the converged mean
+% quantity Spalding's law actually describes, so comparing against it isn't a
+% fair or meaningful comparison) from the "hills" patch, averaged over
+% Hansen/Yang/Abkar's own Tf=200 flow-through-time window (see controlDict/
+% system/functions), and compares the signed streamwise/tangential skin-friction
+% coefficient.
 %
 % OpenFOAM wallShearStress dimensions:
 %
 %       [0 2 -2 0 0 0 0]
 %
-% Therefore wallShearStress is kinematic:
+% Therefore wallShearStress (and its time-average) is kinematic:
 %
 %       tau_w / rho
 %
@@ -26,17 +32,18 @@ close all;
 %% ==============================================================
 % CASE SETTINGS
 % ==============================================================
-
-time = '0.09';
+% endTime = 2000 (200 flow-through times of averaging + ~22 FTT spin-up, per
+% controlDict) - was '0.1'/'0.09', an early, barely-past-the-initial-transient
+% instant under the OLD (wrong) endTime=0.5 convention.
 
 cases(1).name  = 'Spalding';
 cases(1).dir   = 'spaldingSim';
-cases(1).time  ='0.1';
+cases(1).time  = '0.25';
 cases(1).color = [0.0000 0.4470 0.7410];
 
 cases(2).name  = 'ML';
 cases(2).dir   = 'mlSim';
-cases(2).time  = '0.1';
+cases(2).time  = '0.5';
 cases(2).color = [0.8500 0.3250 0.0980];
 
 %% ==============================================================
@@ -89,7 +96,7 @@ for c = 1:length(cases)
     file = fullfile( ...
         cases(c).dir, ...
         cases(c).time, ...
-        'wallShearStress');
+        'wallShearStressMean');
 
     %% ----------------------------------------------------------
     % Read hill wall shear
