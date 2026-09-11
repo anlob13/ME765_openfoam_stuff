@@ -418,32 +418,29 @@ namespace Foam
 
             unifiedWallModel::Prediction values = classifierModel_->predict(inputs);
 
-            // Signed wall shear stress (kinematic, i.e. tau_w/rho) — twMean's sign
-            // carries the physical direction (positive = attached, negative =
-            // reversed/separated flow). Don't clip this to zero.
-            const scalar tauTarget = nuw[facei] * values.twMean * magU_stream / max(SMALL, y[facei]);
+            const scalar tw_n_prediction = max(0, values.twMean);
+
+            //const scalar tw_n_sigma = values.twSigma;
+            //const scalar nutw_sigma = (values.twMean > 0)? nuw[facei] * (magU_stream / max(SMALL, magUp[facei])) * tw_n_sigma: 0;
+
+            const scalar tw_n_sign = sign(values.twMean);
+            const scalar tw_n_mag  = mag(values.twMean);
 
             const scalar tw_n_sigma = values.twSigma;
-            const scalar nutw_sigma =
-                nuw[facei] * (magU_stream / max(SMALL, magUp[facei])) * tw_n_sigma;
-                // no sign-gate here — sigma is a magnitude/uncertainty, not directional
+            //const scalar nutw_sigma = nuw[facei] * (magU_stream / max(SMALL, magUp[facei])) * tw_n_sigma;
+                // no more (values.twMean > 0) gate — sigma is a magnitude, not signed
 
-            setClassifierWeightFields(
-                patchi,
-                facei,
-                values.weightsMean,
-                values.weightsSigma);
+            //const scalar uTau = sqrt(nuw[facei] * tw_n_prediction * magU_stream / max(SMALL, y[facei]));
+            const scalar uTau = sqrt(nuw[facei] * tw_n_mag * magU_stream / max(SMALL, y[facei]));
+                        
+            const scalar tauWallSigned = tw_n_sign * uTau * uTau;
 
-            // Diagnostic-only friction velocity for y+ / output fields
-            // (magnitude-based since uTau itself isn't a signed quantity)
-            const scalar uTau = sqrt(nuw[facei] * mag(values.twMean) * magU_stream / max(SMALL, y[facei]));
-
-            // Store ML outputs (diagnostic, not fed back into the solve)
+            // Store ML outputs
             setOutputField(
                 "tw_n_mean",
                 patchi,
                 facei,
-                tauTarget); // now signed — shows reversal/separation directly
+                tauWallSigned);
 
             setOutputField(
                 "tw_n_sigma",
@@ -451,26 +448,16 @@ namespace Foam
                 facei,
                 tw_n_sigma);
 
+            setClassifierWeightFields(
+                patchi,
+                facei,
+                values.weightsMean,
+                values.weightsSigma);
+
+            // const scalar uTau = ensembleModel_->predict(inputs)[0]*magUp[facei]*nuw[facei]/(y[facei]*rhop[facei]);
             const scalar yPlusCalc = uTau * y[facei] / max(SMALL, nuw[facei]);
 
-            // Signed streamwise velocity gradient normal to the wall.
-            // No-slip at the wall => linear approx: dUtDn = Ut/y, sign preserved.
-            const scalar Ut_stream = Uc_new[facei] & t1[facei];   // signed, NOT mag()
-            const scalar dUtDn = Ut_stream / max(SMALL, y[facei]);
-
-            if (mag(dUtDn) > SMALL)
-            {
-                nutw[facei] = max
-                (
-                    scalar(0),
-                    tauTarget / dUtDn - nuw[facei]
-                );
-            }
-            else
-            {
-                // At/very near separation (or reattachment) — gradient vanishes
-                nutw[facei] = 0.0;
-            }
+            nutw[facei] = max(0, (uTau * uTau * y[facei]) / max(SMALL, magU_stream) - nuw[facei]); // RANS
 
             // nutw[facei] = kappa_ * uTau * y[facei] * (1 - std::exp(-yPlusCalc / Aplus)) * (1 - std::exp(-yPlusCalc / Aplus)); // LES
 
